@@ -102,8 +102,6 @@ class DAEServer(ServerAsync):
             else:
                 print("Connection doesn't exist")
             #Disconnect ACK
-            else:
-                print("NO NAS-PORT")
         else:
             print("NOT SO GOOD PACKET")
 

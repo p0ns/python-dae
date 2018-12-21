@@ -70,42 +70,37 @@ class DAEServer(ServerAsync):
         # Disconnect NAK
         reply.code = 42
 
-        if "User-Name" in pkt and "Acct-Session-Id" in pkt:
+        if "User-Name" in pkt and "NAS-Port" in pkt:
             print("GOT A GOOD PACKET")
-            acct_session_id = pkt["Acct-Session-Id"][0]
 
-            r = re.match(r"^[0-9]{1,10}-([0-9]{1,10})", acct_session_id)
-            if r:
-                nas_port = r.group(1)
-                user_name = pkt["User-Name"][0]
-                print("GOT NAS-PORT %s"%nas_port)
+            nas_port = pkt["NAS-Port"][0]
+            print("GOT NAS-PORT %s"%nas_port)
 
-                proc1 = subprocess.Popen("strongswan statusall".split(" "), stdout=subprocess.PIPE)
-                proc2 = subprocess.Popen(['grep', "%s"%user_name], stdin=proc1.stdout,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                proc3 = subprocess.Popen(['grep', "\[%s\]"%nas_port], stdin=proc2.stdout,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                proc1.stdout.close()
-                proc2.stdout.close()
-                out, err = proc3.communicate()
-                connection_exists = re.search("Remote EAP identity",out.decode("UTF-8"))
-                if connection_exists:
-                    print("Connection exists, closing it!")
-                    cmd = "strongswan down [%s]"%nas_port
-                    proc4 = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE)
-                    outdown, err = proc4.communicate()
-                    print(outdown)
-                    success = re.search("closed successfully", outdown.decode("UTF-8"))
-                    if success:
-                        print("Closed correctly!")
-                        reply.code = 41
-                    else:
-                        print("Failed to close!")
+            proc1 = subprocess.Popen("strongswan statusall".split(" "), stdout=subprocess.PIPE)
+            proc2 = subprocess.Popen(['grep', "%s"%user_name], stdin=proc1.stdout,
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc3 = subprocess.Popen(['grep', "\[%s\]"%nas_port], stdin=proc2.stdout,
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc1.stdout.close()
+            proc2.stdout.close()
+            out, err = proc3.communicate()
+            connection_exists = re.search("Remote EAP identity",out.decode("UTF-8"))
+            if connection_exists:
+                print("Connection exists, closing it!")
+                cmd = "strongswan down [%s]"%nas_port
+                proc4 = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE)
+                outdown, err = proc4.communicate()
+                print(outdown)
+                success = re.search("closed successfully", outdown.decode("UTF-8"))
+                if success:
+                    print("Closed correctly!")
+                    reply.code = 41
                 else:
-                    print("Connection doesn't exist")
-                #Disconnect ACK
+                    print("Failed to close!")
             else:
-                print("NO NAS-PORT")
+                print("Connection doesn't exist")
+            #Disconnect ACK
+
         else:
             print("NOT SO GOOD PACKET")
 

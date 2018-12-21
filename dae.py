@@ -132,7 +132,8 @@ if __name__ == '__main__':
             asyncio.ensure_future(
                 server.initialize_transports(enable_auth=False,
                                              enable_acct=False,
-                                             enable_coa=True)))
+                                             enable_coa=True,
+                                             addresses=["0.0.0.0"])))
         try:
             # start server
             loop.run_forever()

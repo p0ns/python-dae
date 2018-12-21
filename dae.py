@@ -72,7 +72,9 @@ class DAEServer(ServerAsync):
 
         if "User-Name" in pkt and "NAS-Port" in pkt:
             print("GOT A GOOD PACKET")
+            acct_session_id = pkt["Acct-Session-Id"][0]
 
+            user_name = pkt["User-Name"][0]
             nas_port = pkt["NAS-Port"][0]
             print("GOT NAS-PORT %s"%nas_port)
 
@@ -100,7 +102,8 @@ class DAEServer(ServerAsync):
             else:
                 print("Connection doesn't exist")
             #Disconnect ACK
-
+            else:
+                print("NO NAS-PORT")
         else:
             print("NOT SO GOOD PACKET")
 

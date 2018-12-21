@@ -80,7 +80,7 @@ class DAEServer(ServerAsync):
                 user_name = pkt["User-Name"][0]
                 print("GOT NAS-PORT %s"%nas_port)
 
-                proc1 = subprocess.Popen("/home/pons/statusall.sh".split(" "), stdout=subprocess.PIPE)
+                proc1 = subprocess.Popen("strongswan statusall".split(" "), stdout=subprocess.PIPE)
                 proc2 = subprocess.Popen(['grep', "%s"%user_name], stdin=proc1.stdout,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 proc3 = subprocess.Popen(['grep', "\[%s\]"%nas_port], stdin=proc2.stdout,
@@ -91,7 +91,7 @@ class DAEServer(ServerAsync):
                 connection_exists = re.search("Remote EAP identity",out.decode("UTF-8"))
                 if connection_exists:
                     print("Connection exists, closing it!")
-                    cmd = "/home/pons/down.sh [%s]"%nas_port
+                    cmd = "strongswan down [%s]"%nas_port
                     proc4 = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE)
                     outdown, err = proc4.communicate()
                     print(outdown)

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import asyncio, logging, traceback, subprocess, re
+import asyncio, logging, traceback, subprocess, re, os
 from pyrad.dictionary import Dictionary
 from pyrad.server_async import ServerAsync
 from pyrad.packet import AccessAccept
@@ -110,11 +110,14 @@ class DAEServer(ServerAsync):
 
 if __name__ == '__main__':
 
+    cd = os.path.dirname(os.path.realpath(__file__))
+    
+
     # create server and read dictionary
     loop = asyncio.get_event_loop()
-    server = DAEServer(loop=loop, dictionary=Dictionary('dictionary'))
+    server = DAEServer(loop=loop, dictionary=Dictionary('%s/dictionary'%cd))
 
-    f = open("secret.txt")
+    f = open("%s/secret.txt"%cd)
     secret = f.readline().strip().encode("UTF-8")
     f.close()
 

@@ -12,7 +12,7 @@ try:
 except:
     pass
 
-logging.basicConfig(level="DEBUG",
+logging.basicConfig(level="INFO",
                     format="%(asctime)s [%(levelname)-8s] %(message)s")
 
 class DAEServer(ServerAsync):
@@ -62,21 +62,20 @@ class DAEServer(ServerAsync):
 
     def handle_disconnect_packet(self, protocol, pkt, addr):
 
-        print("Received an disconnect request")
-        print("Attributes: ")
-        for attr in pkt.keys():
-            print("%s: %s" % (attr, pkt[attr]))
+        #print("Received an disconnect request")
+        #print("Attributes: ")
+        #for attr in pkt.keys():
+        #    print("%s: %s" % (attr, pkt[attr]))
         reply = self.CreateReplyPacket(pkt)
         # Disconnect NAK
         reply.code = 42
 
         if "User-Name" in pkt and "NAS-Port" in pkt:
-            print("GOT A GOOD PACKET")
             acct_session_id = pkt["Acct-Session-Id"][0]
 
             user_name = pkt["User-Name"][0]
             nas_port = pkt["NAS-Port"][0]
-            print("GOT NAS-PORT %s"%nas_port)
+            #self.logger.info("GOT NAS-PORT %s"%nas_port)
 
             proc1 = subprocess.Popen("strongswan statusall".split(" "), stdout=subprocess.PIPE)
             proc2 = subprocess.Popen(['grep', "%s"%user_name], stdin=proc1.stdout,
@@ -86,24 +85,22 @@ class DAEServer(ServerAsync):
             proc1.stdout.close()
             proc2.stdout.close()
             out, err = proc3.communicate()
-            connection_exists = re.search("Remote EAP identity",out.decode("UTF-8"))
+            connection_exists = re.search("Remote EAP identity|ESTABLISHED",out.decode("UTF-8"))
             if connection_exists:
-                print("Connection exists, closing it!")
                 cmd = "strongswan down [%s]"%nas_port
                 proc4 = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE)
                 outdown, err = proc4.communicate()
-                print(outdown)
                 success = re.search("closed successfully", outdown.decode("UTF-8"))
                 if success:
-                    print("Closed correctly!")
+                    self.logger.info("Connection %s %s closed correctly!"%(user_name,nas_port))
                     reply.code = 41
                 else:
-                    print("Failed to close!")
+                    self.logger.info("Connection %s %s Failed to close!"%(user_name,nas_port))
             else:
-                print("Connection doesn't exist")
+               self.logger.info("Connection %s %s doesn't exist"%(user_name,nas_port))
             #Disconnect ACK
         else:
-            print("NOT SO GOOD PACKET")
+            self.logger.info("Incorrect DAE Request")
 
         protocol.send_response(reply, addr)
 

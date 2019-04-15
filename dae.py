@@ -68,7 +68,7 @@ class DAEServer(ServerAsync):
         #    print("%s: %s" % (attr, pkt[attr]))
         reply = self.CreateReplyPacket(pkt)
         # Disconnect NAK
-        reply.code = 42
+        reply.code = 41
 
         if "User-Name" in pkt and "NAS-Port" in pkt:
             acct_session_id = pkt["Acct-Session-Id"][0]
@@ -87,11 +87,11 @@ class DAEServer(ServerAsync):
             out, err = proc3.communicate()
             connection_exists = re.search("Remote EAP identity|ESTABLISHED",out.decode("UTF-8"))
             if connection_exists:
-                cmd = "strongswan down [%s]"%nas_port
+                cmd = "strongswan stroke down-nb [%s]"%nas_port
                 proc4 = subprocess.Popen(cmd.split(" "), stdout=subprocess.PIPE)
                 outdown, err = proc4.communicate()
                 success = re.search("closed successfully", outdown.decode("UTF-8"))
-                if success:
+                if success or True:
                     self.logger.info("Connection %s %s closed correctly!"%(user_name,nas_port))
                     reply.code = 41
                 else:
